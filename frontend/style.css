@@ -1,0 +1,52 @@
+.wrap {
+  max-width: 1400px;
+  margin: 0 auto;
+}
+
+.card {
+  padding: 12px 16px;
+  border: 1px solid #eee;
+  border-radius: 20px;
+  box-shadow: 0 0 20px #eee;
+}
+
+thead th {
+  color: #666;
+  background-color: white;
+  text-transform: uppercase;
+  padding: 12px 8px;
+  border-bottom: 1px solid #ddd;
+  position: sticky;
+  top: 0;
+}
+
+tbody td {
+  padding: 12px 8px;
+  border-bottom: 1px solid #eee;
+  vertical-align: top;
+}
+
+.subject {
+  font-weight: bold;
+}
+
+.body {
+  white-space: pre-wrap;
+  color: #666;
+}
+
+.button {
+  text-decoration: none;
+  color: #fff;
+  font-weight: 600;
+  background-color: #26e;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 12px;
+  border-radius: 12px;
+}
+
+.button:hover {
+  filter: brightness(1.1);
+}

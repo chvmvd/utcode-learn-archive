@@ -1,0 +1,7 @@
+{
+  "name": "utcode-learn-archive",
+  "type": "module",
+  "devDependencies": {
+    "prettier": "^3.6.2"
+  }
+}

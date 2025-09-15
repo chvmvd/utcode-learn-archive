@@ -1,0 +1,97 @@
+name: Deploy Previews
+
+on:
+  workflow_dispatch:
+  schedule:
+    - cron: 2 8 * * 4 # Every Thursday at 08:02 UTC
+
+concurrency:
+  group: deploy-previews
+  cancel-in-progress: true
+
+permissions:
+  contents: write
+
+jobs:
+  deploy-website:
+    name: Deploy website
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout main branch
+        uses: actions/checkout@v5
+
+      - name: Checkout gh-pages branch
+        uses: actions/checkout@v5
+        with:
+          ref: gh-pages
+          path: gh-pages
+          filter: "blob:none"
+
+      - name: Checkout utcode-learn
+        uses: actions/checkout@v5
+        with:
+          repository: ut-code/utcode-learn
+          ref: main
+          path: source
+          fetch-depth: 0
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v5
+        with:
+          node-version-file: .nvmrc
+
+      - name: Generate commits.json
+        run: node scripts/generate-commits-json.js
+        shell: bash
+
+      - name: Copy frontend files
+        run: cp -r frontend/. gh-pages
+        shell: bash
+
+      - name: Commit and push if changed
+        run: |
+          cd gh-pages
+          if [ -n "$(git status --porcelain)" ]; then
+            git config user.name "github-actions[bot]"
+            git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+            git add .
+            git commit -m "Update website"
+            git push origin gh-pages
+          else
+            echo "No changes"
+          fi
+        shell: bash
+
+  deploy-previews:
+    name: Deploy Previews
+    needs: deploy-website
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout main branch
+        uses: actions/checkout@v5
+
+      - name: Checkout gh-pages branch
+        uses: actions/checkout@v5
+        with:
+          ref: gh-pages
+          path: gh-pages
+          filter: "blob:none"
+
+      - name: Checkout utcode-learn
+        uses: actions/checkout@v5
+        with:
+          repository: ut-code/utcode-learn
+          ref: main
+          path: source
+          fetch-depth: 0
+
+      - name: Install nvm and Node.js
+        run: |
+          curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.40.3/install.sh | bash
+          source $HOME/.nvm/nvm.sh
+          nvm install
+        shell: bash
+
+      - name: Build and deploy previews
+        run: source $HOME/.nvm/nvm.sh && nvm use && node scripts/build-previews.js
+        shell: bash
