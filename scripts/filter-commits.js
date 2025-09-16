@@ -1,4 +1,4 @@
-import { readFileSync } from "node:fs";
+import { existsSync, readFileSync } from "node:fs";
 
 const commits = JSON.parse(readFileSync("./gh-pages/commits.json", "utf-8"));
 
