@@ -1,11 +1,12 @@
-import { existsSync, readFileSync, writeFileSync } from "node:fs";
+import { readFileSync, writeFileSync } from "node:fs";
 
 const commits = JSON.parse(readFileSync("./gh-pages/commits.json", "utf-8"));
 
 const filteredCommits = commits
   .toReversed()
-  .filter((commit) => {
-    if (existsSync(`./gh-pages/commit/${commit.commitHash}`)) {
+  .filter(async (commit) => {
+    const response = await fetch(`https://api.github.com/repos/utcode-learn-archive/${commit.commitHash}`);
+    if (response.status === 200) {
       return false;
     }
     return true;

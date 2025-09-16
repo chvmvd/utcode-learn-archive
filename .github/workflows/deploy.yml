@@ -25,7 +25,6 @@ jobs:
         with:
           ref: gh-pages
           path: gh-pages
-          filter: "blob:none"
 
       - name: Checkout utcode-learn
         uses: actions/checkout@v5
@@ -77,7 +76,6 @@ jobs:
         with:
           ref: gh-pages
           path: gh-pages
-          filter: "blob:none"
 
       - name: Setup Node.js
         uses: actions/setup-node@v5
@@ -100,19 +98,11 @@ jobs:
     needs: filter-commits
     runs-on: ubuntu-latest
     strategy:
-      max-parallel: 1
       matrix:
         commit: ${{ fromJson(needs.filter-commits.outputs.commits) }}
     steps:
       - name: Checkout main branch
         uses: actions/checkout@v5
-
-      - name: Checkout gh-pages branch
-        uses: actions/checkout@v5
-        with:
-          ref: gh-pages
-          path: gh-pages
-          filter: "blob:none"
 
       - name: Checkout utcode-learn
         uses: actions/checkout@v5
@@ -130,7 +120,7 @@ jobs:
 
       - name: Modify docusaurus.config.js to set baseUrl
         run: |
-          sed -i 's|baseUrl: .*,|baseUrl: "/utcode-learn-archive/commit/${{ matrix.commit.commitHash }}/",|' ./source/docusaurus.config.js
+          sed -i 's|baseUrl: .*,|baseUrl: "/${{ matrix.commit.commitHash }}/",|' ./source/docusaurus.config.js
         shell: bash
 
       - name: Determine Node.js version
@@ -181,23 +171,35 @@ jobs:
       - name: Copy build output
         if: steps.build.outcome == 'success'
         run: |
-          mkdir -p ./gh-pages/commit/${{ matrix.commit.commitHash }}
-          cp -r ./source/build/. ./gh-pages/commit/${{ matrix.commit.commitHash }}
+          mkdir -p ./out
+          cp -r ./source/build/. ./out
         shell: bash
 
       - name: Copy error page
         if: steps.build.outcome == 'failure'
         run: |
-          mkdir -p ./gh-pages/commit/${{ matrix.commit.commitHash }}
-          cp -r ./scripts/error/. ./gh-pages/commit/${{ matrix.commit.commitHash }}
+          mkdir -p ./out
+          cp -r ./scripts/error/. ./out
         shell: bash
 
-      - name: Commit and push
+      - name: Create README
         run: |
-          cd gh-pages
+          echo "# Snapshot for commit ${{ matrix.commit.commitHash }}" > ./out/README.md
+          echo "" >> ./out/README.md
+          echo "This is an automatically generated snapshot for commit [${{ matrix.commit.commitHash }}](https://github.com/ut-code/utcode-learn/commit/${{ matrix.commit.commitHash }})" >> ./out/README.md
+
+      - name: Commit and push
+        env:
+          GH_TOKEN: ${{ secrets.PUBLISH_TOKEN }}
+        run: |
+          cd out
+          git init
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git checkout -b gh-pages
           git add .
-          git commit -m "Update commit previews"
-          git push origin gh-pages
+          git commit -m "Add snapshot for commit ${{ matrix.commit.commitHash }}"
+          gh repo create utcode-learn-archive/${{ matrix.commit.commitHash }} --public
+          gh auth setup-git
+          git push https://github.com/utcode-learn-archive/${{ matrix.commit.commitHash }}.git gh-pages
         shell: bash
