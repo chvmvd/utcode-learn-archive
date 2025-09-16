@@ -1,0 +1,29 @@
+# .github/workflows/test-create-and-push.yml
+name: Test create & push (minimal)
+
+on:
+  workflow_dispatch:
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Create repo
+        env:
+          GH_TOKEN: ${{ secrets.PUBLISH_TOKEN }}
+        run: gh repo create chvmvd/test --public
+
+      - name: Push a file to gh-pages
+        env:
+          GH_TOKEN: ${{ secrets.PUBLISH_TOKEN }}
+        run: |
+          mkdir work && cd work
+          echo "hello" > hello.txt
+          git init
+          git checkout -b gh-pages
+          git add hello.txt
+          git -c user.name="github-actions[bot]" \
+              -c user.email="41898282+github-actions[bot]@users.noreply.github.com" \
+              commit -m "test push"
+          gh auth setup-git
+          git push -f https://github.com/chvmvd/test.git HEAD:gh-pages
