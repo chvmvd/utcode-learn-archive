@@ -9,6 +9,6 @@ const filteredCommits = commits
     }
     return true;
   })
-  .slice(0, 50);
+  .slice(0, 2);
 
 writeFileSync("./filtered-commits.json", JSON.stringify(filteredCommits));
