@@ -1,0 +1,12 @@
+body {
+  margin: 0 auto;
+  max-width: 1200px;
+}
+pre {
+  white-space: pre-wrap;
+  word-break: break-word;
+  color: #eee;
+  background-color: #222;
+  padding: 20px;
+  border-radius: 12px;
+}

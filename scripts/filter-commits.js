@@ -3,6 +3,7 @@ import { existsSync, readFileSync, writeFileSync } from "node:fs";
 const commits = JSON.parse(readFileSync("./gh-pages/commits.json", "utf-8"));
 
 const filteredCommits = commits
+  .toReversed()
   .filter((commit) => {
     if (existsSync(`./gh-pages/commit/${commit.commitHash}`)) {
       return false;

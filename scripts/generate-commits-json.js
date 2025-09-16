@@ -50,7 +50,6 @@ const commits = rawString
       },
       coAuthors,
     };
-  })
-  .toReversed();
+  });
 
 writeFileSync("./frontend/commits.json", JSON.stringify(commits, null, 2));

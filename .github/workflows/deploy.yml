@@ -1,12 +1,12 @@
-name: Deploy Previews
+name: Deploy Snapshots
 
 on:
   workflow_dispatch:
-  schedule:
-    - cron: 2 8 * * 4 # Every Thursday at 08:02 UTC
+  # schedule:
+  #   - cron: 2 8 * * 4 # Every Thursday at 08:02 UTC
 
 concurrency:
-  group: deploy-previews
+  group: deploy-snapshots
   cancel-in-progress: true
 
 permissions:
@@ -67,7 +67,7 @@ jobs:
     needs: deploy-website
     runs-on: ubuntu-latest
     outputs:
-      commits: ${{ steps.filter-commits.outputs.commits }}
+      commits: ${{ steps.read-commits.outputs.commits }}
     steps:
       - name: Checkout main branch
         uses: actions/checkout@v5
@@ -88,15 +88,15 @@ jobs:
         run: node scripts/filter-commits.js
         shell: bash
 
-      - name: Filter commits
-        id: filter-commits
+      - name: Read filtered commits
+        id: read-commits
         run: |
           commits=$(cat filtered-commits.json)
           echo "commits=$commits" >> "$GITHUB_OUTPUT"
         shell: bash
 
-  deploy-previews:
-    name: Deploy Previews
+  deploy-snapshots:
+    name: Deploy Snapshots
     needs: filter-commits
     runs-on: ubuntu-latest
     strategy:

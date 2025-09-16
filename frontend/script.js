@@ -2,7 +2,7 @@ const list = document.getElementById("list");
 
 try {
   const response = await fetch("./commits.json");
-  const commits = (await response.json()).toReversed();
+  const commits = await response.json();
 
   if (commits.length === 0) {
     list.innerHTML = `<tr><td colspan="6">No commits</td></tr>`;
