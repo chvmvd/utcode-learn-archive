@@ -1,0 +1,19 @@
+Browserslist: caniuse-lite is outdated. Please run:
+  npx browserslist@latest --update-db
+  Why you should do it regularly: https://github.com/browserslist/browserslist#browsers-data-updating
+[WARNING] Docs markdown link couldn't be resolved: (../03-class/index.md) in /home/runner/work/utcode-learn-archive/utcode-learn-archive/source/docs/2-javascript-training/06-anonymous-function/index.md for version current
+[WARNING] Docs markdown link couldn't be resolved: (../03-class/index.md) in /home/runner/work/utcode-learn-archive/utcode-learn-archive/source/docs/2-javascript-training/06-anonymous-function/index.md for version current
+Browserslist: caniuse-lite is outdated. Please run:
+  npx browserslist@latest --update-db
+  Why you should do it regularly: https://github.com/browserslist/browserslist#browsers-data-updating
+[ERROR] Unable to build website for locale en.
+[ERROR] Error: Docusaurus found broken links!
+
+Please check the pages of your site in the list below, and make sure you don't reference any path that does not exist.
+Note: it's possible to ignore broken links with the 'onBrokenLinks' Docusaurus configuration, and let the build pass.
+
+Exhaustive list of all broken links found:
+
+- On source page path = /utcode-learn-archive/commit/91a1b4cb4a4cc85934c45152b61d291d6fc13253/docs/javascript-training/anonymous-function/:
+   -> linking to ../03-class/index.md (resolved as: /utcode-learn-archive/commit/91a1b4cb4a4cc85934c45152b61d291d6fc13253/docs/javascript-training/03-class/index.md)
+
