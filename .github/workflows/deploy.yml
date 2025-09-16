@@ -62,10 +62,47 @@ jobs:
           fi
         shell: bash
 
-  deploy-previews:
-    name: Deploy Previews
+  filter-commits:
+    name: Filter Commits
     needs: deploy-website
     runs-on: ubuntu-latest
+    outputs:
+      commits: ${{ steps.filter-commits.outputs.commits }}
+    steps:
+      - name: Checkout main branch
+        uses: actions/checkout@v5
+
+      - name: Checkout gh-pages branch
+        uses: actions/checkout@v5
+        with:
+          ref: gh-pages
+          path: gh-pages
+          filter: "blob:none"
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v5
+        with:
+          node-version-file: .nvmrc
+
+      - name: Generate filtered-commits.json
+        run: node scripts/filter-commits.js
+        shell: bash
+
+      - name: Filter commits
+        id: filter-commits
+        run: |
+          commits=$(cat filtered-commits.json)
+          echo "commits=$commits" >> "$GITHUB_OUTPUT"
+        shell: bash
+
+  deploy-previews:
+    name: Deploy Previews
+    needs: filter-commits
+    runs-on: ubuntu-latest
+    strategy:
+      max-parallel: 1
+      matrix:
+        commit: ${{ fromJson(needs.filter-commits.outputs.commits) }}
     steps:
       - name: Checkout main branch
         uses: actions/checkout@v5
@@ -85,13 +122,82 @@ jobs:
           path: source
           fetch-depth: 0
 
-      - name: Install nvm and Node.js
+      - name: Checkout the commit
         run: |
-          curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.40.3/install.sh | bash
-          source $HOME/.nvm/nvm.sh
-          nvm install
+          cd source
+          git checkout ${{ matrix.commit.commitHash }}
         shell: bash
 
-      - name: Build and deploy previews
-        run: source $HOME/.nvm/nvm.sh && nvm use && node scripts/build-previews.js
+      - name: Modify docusaurus.config.js to set baseUrl
+        run: |
+          sed -i 's|baseUrl: .*,|baseUrl: "/utcode-learn-archive/commit/${{ matrix.commit.commitHash }}/",|' ./source/docusaurus.config.js
+        shell: bash
+
+      - name: Determine Node.js version
+        id: node-version
+        run: |
+          cd source
+          if [ -f .nvmrc ]; then
+            version=$(cat .nvmrc)
+          else
+            version=$(sed -n 's/.*"node": "[^0-9]*\([0-9][0-9]*\).*/\1/p' ./package.json)
+            if [ -z "$version" ]; then
+              version=16
+            fi
+          fi
+          echo "node-version=$version" >> "$GITHUB_OUTPUT"
+          echo "⚙️ Using Node.js version $version for commit ${{ matrix.commit.commitHash }}"
+        shell: bash
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v5
+        with:
+          node-version: ${{ steps.node-version.outputs.node-version }}
+
+      - name: Install dependencies
+        run: |
+          cd source
+          if [ -f package-lock.json ]; then
+            echo "📦 Using npm as package manager"
+            npm ci
+          elif [ -f yarn.lock ]; then
+            echo "📦 Using yarn as package manager"
+            yarn install --frozen-lockfile
+          fi
+        shell: bash
+
+      - name: Build
+        id: build
+        continue-on-error: true
+        run: |
+          cd source
+          if [ -f package-lock.json ]; then
+            npm run build 2>./scripts/error/error-log.txt
+          elif [ -f yarn.lock ]; then
+            yarn build 2>./scripts/error/error-log.txt
+          fi
+        shell: bash
+
+      - name: Copy build output
+        if: steps.build.outcome == 'success'
+        run: |
+          mkdir -p ./gh-pages/commit/${{ matrix.commit.commitHash }}
+          cp -r ./source/build/. ./gh-pages/commit/${{ matrix.commit.commitHash }}
+        shell: bash
+
+      - name: Copy error page
+        if: steps.build.outcome == 'failure'
+        run: |
+          mkdir -p ./gh-pages/commit/${{ matrix.commit.commitHash }}
+          cp -r ./scripts/error/. ./gh-pages/commit/${{ matrix.commit.commitHash }}
+        shell: bash
+
+      - name: Commit and push
+        run: |
+          cd gh-pages
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add .
+          git commit -m "Update commit previews"
+          git push origin gh-pages
         shell: bash
