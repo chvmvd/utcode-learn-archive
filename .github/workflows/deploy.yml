@@ -172,9 +172,9 @@ jobs:
         run: |
           cd source
           if [ -f package-lock.json ]; then
-            npm run build 2>./scripts/error/error-log.txt
+            npm run build 2>./../scripts/error/error-log.txt
           elif [ -f yarn.lock ]; then
-            yarn build 2>./scripts/error/error-log.txt
+            yarn build 2>./../scripts/error/error-log.txt
           fi
         shell: bash
 
